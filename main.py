@@ -19,7 +19,6 @@ def start(message):
                                       'если ты попросишь <3 Нажми кнопку "Создать напоминание",'
                                       ' чтобы создать новое напоминание.', reply_markup=markup)
 
-
 # вот сюда все текстовые ответы на проверку придут
 @bot.message_handler(content_types=['text'])
 def handle_text(message):
@@ -29,16 +28,18 @@ def handle_text(message):
             text="Введите дату и время и текст напоминания в формате: ЧЧ:ММ ДД-ММ-ГГГГ Напоминание",
         )
         bot.register_next_step_handler(message, handle_reminder)
-        
+
+
     elif message.text == 'Создать ежедневное напоминание':
         bot.send_message(
             chat_id=message.chat.id,
             text="Ежедневное напоминание!!!",
         )
-        bot.register_next_step_handler(message, handle_reminder)
+        # bot.register_next_step_handler(message, handle_reminder)
 
     elif message.text == 'Назад':
         print('hehe')
+
 
 def handle_reminder(message):
     try:
@@ -55,3 +56,24 @@ def handle_reminder(message):
         bot.send_message(message.chat.id, "Неверный формат даты или времени.")
 
 
+def handle_daily_reminder(self, message):
+    try:
+        datetime_str, reminder = message.text.split(' ', 1)
+        datetime_obj = datetime.datetime.strptime(datetime_str, '%H:%M %d-%m-%Y')
+        reminder_time = datetime_obj.strftime('%H:%M')
+        reminder_date = datetime_obj.strftime('%d-%m-%Y')
+        schedule.every().day.at(reminder_time).do()
+        bot.send_message(
+            chat_id=message.chat.id,
+            text=f"Напоминание создано: {reminder_time} {reminder_date} - {reminder}",
+            reply_markup=self.get_main_keyboard()
+        )
+    except ValueError:
+        self.bot.send_message(
+            chat_id=message.chat.id,
+            text="Некорректный формат. Попробуйте еще раз.",
+            reply_markup=self.get_main_keyboard(),
+        )
+
+
+bot.infinity_polling()
